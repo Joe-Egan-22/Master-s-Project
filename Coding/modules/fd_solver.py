@@ -4,14 +4,6 @@
 
 import numpy as np
 
-vars = {
-    'x0': 0,
-    'xn': 5,
-    'y0': 0,
-    'yn': 50,
-    'n': 10
-}
-
 def get_h(x0, xn, n):
 
     h = (xn - x0) / n
@@ -57,6 +49,3 @@ def solve(vars):
     y = np.linalg.solve(A,B)
 
     return y
-
-sol = solve(vars)
-print(sol)
