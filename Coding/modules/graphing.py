@@ -14,12 +14,12 @@ def create_fig(xlabel, ylabel, title, n):
 
 def plot_data(vars, y):
 
-    x0 = vars['x0']
-    xn = vars['xn']
-    n = vars['n']
-    xlabel = vars['xlabel']
-    ylabel = vars['ylabel']
-    title = vars['title']
+    x0 = vars.iloc[0]['x0']
+    xn = vars.iloc[0]['xn']
+    n = vars.iloc[0]['n']
+    xlabel = vars.iloc[0]['xlabel']
+    ylabel = vars.iloc[0]['ylabel']
+    title = 'Title'
 
     create_fig(xlabel, ylabel, title, n)
     x = np.linspace(x0, xn, n+1)
