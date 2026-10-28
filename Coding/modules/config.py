@@ -1,15 +1,15 @@
 import numpy as np
 
 settings = {
-    'title': '$y^{\prime\prime} = -g $',
+    'title': 'Numerical Sol. to Symmetron',
     'xlabel': 'x',
     'ylabel': 'y'
 }
 
 maths_settings = {
     'n': 10,
-    'x0': 0,
-    'xn': 5
+    'x0': -5,
+    'xn': 0
 }
 
 y_matrix_A_coeffs = {
