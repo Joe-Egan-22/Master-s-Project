@@ -1,12 +1,11 @@
 import modules.fd_solver as fd_solver
 import modules.graphing as graphing
-import modules.get_data as get_data
-from modules.config import settings, maths_settings, y_matrix_A_coeffs, x_vector_B_coeffs
+from modules.config import settings
 
 def main():
 
-    sol = fd_solver.solve(maths_settings, y_matrix_A_coeffs, x_vector_B_coeffs)
-    graphing.plot_data(settings, maths_settings, sol)
+    sol = fd_solver.solve(settings)
+    graphing.plot_numerical_sol(settings, sol)
 
     return
 

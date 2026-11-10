@@ -13,12 +13,12 @@ Functions:
 
 Output:
 
-    y from solve(...)
+    sol from solve(...)
 '''
 
 import numpy as np
 
-def get_h(maths_settings):
+def get_h(settings):
     '''
     Extracts starting point (x0), end point (xn) and
     number of divisions from settings and calculates 
@@ -32,15 +32,15 @@ def get_h(maths_settings):
     '''
 
     # Extract coefficients from dictionary
-    x0 = maths_settings['x0']
-    xn = maths_settings['xn']
-    n = maths_settings['n']
+    x0 = settings['variables']['x0']
+    xn = settings['variables']['xn']
+    n = settings['variables']['n']
 
     # Calculate step length
     h = (xn - x0) / n
     return h
 
-def get_domain(maths_settings):
+def get_domain(settings):
     '''
     Extracts starting point (x0), end point (xn)
     and number of divisions (n) from settings and 
@@ -55,16 +55,16 @@ def get_domain(maths_settings):
     '''
 
     # Extract coefficients from dictionary
-    x0 = maths_settings['x0']
-    xn = maths_settings['xn']
-    n = maths_settings['n']
+    x0 = settings['variables']['x0']
+    xn = settings['variables']['xn']
+    n = settings['variables']['n']
 
     # Create array between x0, xn with n values
-    domain = np.linspace(x0, xn, n-1)
+    domain = np.linspace(x0, xn, n+1)
     return domain
 
 
-def get_A(n, h, A_coeffs):
+def get_A(settings, x, h):
     '''
     Creates an empty matrix array for the left-
     hand-side of the finite difference matrix
@@ -79,6 +79,9 @@ def get_A(n, h, A_coeffs):
         A: NumPy array
     '''
 
+    # Extract required coefficients
+    n = settings['variables']['n']
+
     # Create empty nxn zero matrix
     A = np.zeros((n+1,n+1))
 
@@ -89,13 +92,13 @@ def get_A(n, h, A_coeffs):
 
     # Fill rest of the rows with diagonal and off-diagonal elements
     for i in range(1, n):
-        A[i,i-1] = A_coeffs['y_i-1']
-        A[i,i] = A_coeffs['y_i_const'] + A_coeffs['y_i_h']*h**2
-        A[i,i+1] = A_coeffs['y_i+1']
+        A[i,i-1] = settings['A_coeffs']['y_i-1']
+        A[i,i] = settings['A_coeffs']['y_i_const'] + settings['A_coeffs']['y_i_h']*h**2
+        A[i,i+1] = settings['A_coeffs']['y_i+1']
 
     return A
 
-def get_B(n, h, x, B_coeffs):
+def get_B(settings, x, h):
     '''
     Creates an empty vector array for the right-
     hand-side of the finite difference matrix
@@ -111,19 +114,23 @@ def get_B(n, h, x, B_coeffs):
         B: NumPy array
     '''
 
+    # Extract required coefficients
+    n = settings['variables']['n']
+
     # Create empty n-length zero vector
     B = np.zeros(n+1)
 
     # Fill each element with the right hand side of the finite difference equation
-    B[1:-1] = ( B_coeffs['const'] + B_coeffs['linear']*x + B_coeffs['quadratic']*(x**2) )*(h**2)
+    for i in range(1,n):
+        B[i] = ( settings['B_coeffs']['const'] + settings['B_coeffs']['linear']*x[i] + settings['B_coeffs']['quadratic']*(x[i]**2) )*(h**2)
 
     # Fix initial and final values
-    B[-1] = 50
-    B[0] = B_coeffs['y0']
+    B[0] = settings['B_coeffs']['y0']
+    B[-1] = settings['B_coeffs']['yn']
 
     return B
 
-def solve(maths_settings, A_coeffs, B_coeffs):
+def solve(settings):
     '''
     Uses matrix A and vector B to solve a finite difference
     matrix equation to give an array of y values defining the
@@ -133,18 +140,21 @@ def solve(maths_settings, A_coeffs, B_coeffs):
         maths_settings: Dict
         A_coeffs: Dict
         B_coeffs: Dict
+
+    Outputs:
+        sol: Dict
     '''
 
-    # Extract required values from settings
-    n = maths_settings['n']
-    h = get_h(maths_settings)
-    x = get_domain(maths_settings)
+    # Calculate h and define domain
+    h = get_h(settings)
+    x = get_domain(settings)
 
     # Define A-matrix and B-vector
-    A = get_A(n, h, A_coeffs)
-    B = get_B(n, h, x, B_coeffs)
+    A = get_A(settings, x, h)
+    B = get_B(settings, x, h)
 
     # Solve the finite difference equation
     y = np.linalg.solve(A,B)
 
-    return y
+    sol = {'domain': x, 'solution': y}
+    return sol
