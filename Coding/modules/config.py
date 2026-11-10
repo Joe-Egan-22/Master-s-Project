@@ -6,6 +6,8 @@ and plotting modules to function.
 
 All changes should be made to this file only before running main.py
 
+ALL EXCEPT THE ANALYTICAL SOLUTION WHICH MUST CURRENTLY BE EDITED IN THE analytical_sol.py FILE!
+
 '''
 
 # Dictionary containing desired labels for plots
