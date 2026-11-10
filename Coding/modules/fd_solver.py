@@ -40,7 +40,7 @@ def get_h(settings):
     h = (xn - x0) / n
     return h
 
-def get_domain(settings):
+def get_domain(x0,xn,n):
     '''
     Extracts starting point (x0), end point (xn)
     and number of divisions (n) from settings and 
@@ -53,11 +53,6 @@ def get_domain(settings):
     Outputs:
         domain: NumPy array
     '''
-
-    # Extract coefficients from dictionary
-    x0 = settings['variables']['x0']
-    xn = settings['variables']['xn']
-    n = settings['variables']['n']
 
     # Create array between x0, xn with n values
     domain = np.linspace(x0, xn, n+1)
@@ -92,17 +87,19 @@ def get_A(settings, x, h):
 
     # Fill rest of the rows with diagonal and off-diagonal elements
     for i in range(1, n):
-        A[i,i-1] = settings['A_coeffs']['y_i-1']
-        A[i,i] = settings['A_coeffs']['y_i_const'] + settings['A_coeffs']['y_i_h']*h**2
-        A[i,i+1] = settings['A_coeffs']['y_i+1']
+        A[i,i-1] = settings['A_coeffs']['y_i-1/h2']/h**2 + settings['A_coeffs']['y_i-1/hx']/(h*x[i])
+        A[i,i] = settings['A_coeffs']['y_i_const'] + settings['A_coeffs']['y_i/h2']/h**2
+        A[i,i+1] = settings['A_coeffs']['y_i+1/h2']/h**2 + settings['A_coeffs']['y_i+1/hx']/(h*x[i])
 
     return A
 
-def get_B(settings, x, h):
+def get_B_in(settings, x, h):
     '''
+    FOR INSIDE THE SOURCE
+
     Creates an empty vector array for the right-
     hand-side of the finite difference matrix
-    equation.
+    equation
 
     Arguments:
         n: int
@@ -118,19 +115,54 @@ def get_B(settings, x, h):
     n = settings['variables']['n']
 
     # Create empty n-length zero vector
-    B = np.zeros(n+1)
+    B_in = np.zeros(n+1)
 
     # Fill each element with the right hand side of the finite difference equation
     for i in range(1,n):
-        B[i] = ( settings['B_coeffs']['const'] + settings['B_coeffs']['linear']*x[i] + settings['B_coeffs']['quadratic']*(x[i]**2) )*(h**2)
+        B_in[i] = ( settings['B_coeffs_in']['const'] + settings['B_coeffs_in']['linear']*x[i] + settings['B_coeffs_in']['quadratic']*(x[i]**2) )*(h**2)
 
     # Fix initial and final values
-    B[0] = settings['B_coeffs']['y0']
-    B[-1] = settings['B_coeffs']['yn']
+    B_in[0] = settings['B_coeffs_in']['y0']
+    B_in[-1] = settings['B_coeffs_in']['yn']
 
-    return B
+    return B_in
 
-def solve(settings):
+def get_B_out(settings, x, h):
+    '''
+    FOR OUTSIDE THE SOURCE
+
+    Creates an empty vector array for the right-
+    hand-side of the finite difference matrix
+    equation
+
+    Arguments:
+        n: int
+        h: float
+        x: NumPy array
+        B_coeffs: Dict
+
+    Outputs:
+        B: NumPy array
+    '''
+
+    # Extract required coefficients
+    n = settings['variables']['n']
+
+    # Create empty n-length zero vector
+    B_out = np.zeros(n+1)
+
+    # Fill each element with the right hand side of the finite difference equation
+    for i in range(1,n):
+        B_out[i] = ( settings['B_coeffs_out']['const'] + settings['B_coeffs_out']['linear']*x[i] + settings['B_coeffs_out']['quadratic']*(x[i]**2) )*(h**2)
+
+    # Fix initial and final values
+    B_out[0] = settings['B_coeffs_out']['y0']
+    B_out[-1] = settings['B_coeffs_out']['yn']
+
+    return B_out
+
+
+def solve(settings, x, h):
     '''
     Uses matrix A and vector B to solve a finite difference
     matrix equation to give an array of y values defining the
@@ -139,22 +171,51 @@ def solve(settings):
     Arguments:
         maths_settings: Dict
         A_coeffs: Dict
-        B_coeffs: Dict
+        B_coeffs: NumPy array
 
     Outputs:
         sol: Dict
     '''
 
-    # Calculate h and define domain
-    h = get_h(settings)
-    x = get_domain(settings)
-
-    # Define A-matrix and B-vector
+    # Define A-matrix and B-vector for both inside and outside source
     A = get_A(settings, x, h)
-    B = get_B(settings, x, h)
+    B = get_B_in(settings, x, h)
 
     # Solve the finite difference equation
-    y = np.linalg.solve(A,B)
+    sol = np.linalg.solve(A,B)
 
-    sol = {'domain': x, 'solution': y}
     return sol
+
+def form_solution(settings):
+    '''
+    Combines the interior and exterior numerical 
+    solutions into a single array and domain
+
+    Arguments:
+        settings: Dict
+
+    Output:
+        num_dict: Dict
+    '''
+
+    n = settings['variables']['n']
+
+    # Calculate define domains and calculate h
+    h = get_h(settings)
+    x_in = get_domain(settings['variables']['x0'], settings['variables']['b']-settings['variables']['e'], n)
+    x_out = get_domain(settings['variables']['b'], settings['variables']['xn'] + settings['variables']['e'], n)
+
+    # Solve interior
+    interior = solve(settings, x_in, h)
+
+    # Solve exterior
+    exterior = solve(settings, x_out, h)
+
+    # Combine arrays to form a domain and solution
+    num_sol = np.concatenate((interior, exterior))
+    x_tot = np.concatenate((x_in, x_out))
+
+    # Form a dictionary
+    num_dict = {'domain': x_tot, 'solution': num_sol}
+
+    return num_dict

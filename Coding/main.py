@@ -5,7 +5,7 @@ from modules.config import settings
 
 def main():
 
-    num_sol = fd_solver.solve(settings) # Numerical solution and corresponding domain
+    num_sol = fd_solver.form_solution(settings) # Numerical solution and corresponding domain
     ana_sol = analytical.analytical_eq(settings) # Analytical solution and corresponding domain
 
     # Plot numerical and analytical solution
