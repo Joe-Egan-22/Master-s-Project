@@ -11,23 +11,29 @@ Functions:
 import autograd as gr
 import numpy as np
 import matplotlib.pyplot as plt
-from config import settings
 
-def Fn(x,y,n,X):
+def Fn_ext(x,y,n):
     '''
     Calculates the Fn function for Newton-Raphson
     '''
 
-    # Define Heaviside step function Theta(x-X)
-    step = np.heaviside((x[1:-1] - X[1:-1]),0)
+    h = (x[-1] - x[0]) / (n-1)
+    ypp = (y[2:] - 2*y[1:-1] + y[:-2]) / h**2
+    yp = (y[2:] - y[:-2]) / h
+    return ypp + (2/x[1:-1])*yp + (1)*y[1:-1] - (y[1:-1])**3
+
+def Fn_int(x,y,n):
+    '''
+    Calculates the Fn function for Newton-Raphson
+    '''
 
     h = (x[-1] - x[0]) / (n-1)
     ypp = (y[2:] - 2*y[1:-1] + y[:-2]) / h**2
     yp = (y[2:] - y[:-2]) / h
-    return ypp + (2/x[1:-1])*yp + (1 - 25*step)*y[1:-1] - (y[1:-1])**3
+    return ypp + (2/x[1:-1])*yp - 24*y[1:-1] - (y[1:-1])**3
 
 
-def get_domain(settings):
+def get_domain(x0, xn, n):
     '''
     Gets the domain for the problem
 
@@ -38,11 +44,11 @@ def get_domain(settings):
         dom: NumPy array
     '''
 
-    x = np.linspace(settings['variables']['x0'], settings['variables']['xn'], (settings['variables']['n']+1))
+    x = np.linspace(x0, xn, int(n))
 
     return x
 
-def nr_solve(settings):
+def nr_solve(settings, domain, lims, J, ext):
     '''
     Solves Newton-Raphson problem, outputs solution
     and domain
@@ -57,19 +63,18 @@ def nr_solve(settings):
     n = settings['variables']['n']
 
     # Define domain
-    x = get_domain(settings)
-    X = np.full((n+1), settings['variables']['b'])
+    x = domain
 
     # Define other
-    yg = np.linspace(settings['B_coeffs']['y0'], settings['B_coeffs']['yn'], n+1)
+    yg = np.linspace(lims[0], lims[1], int(n/2))
     yn = yg.copy()
-
-    # Define a Jacobian function
-    J = gr.jacobian(lambda y: Fn(x, y, n, X))
 
     # Iterative NR method
     for i in range(settings['NR_coeffs']['N_max']):
-        Fy = Fn(x,yg,n,X)
+        if ext == True:
+            Fy = Fn_ext(x,yg,n/2)
+        else:
+            Fy = Fn_int(x,yg,n/2)
 
         Jy = J(yg)
 
@@ -81,14 +86,48 @@ def nr_solve(settings):
         else:
             yg = yn
 
-    NR_sol = {'domain': x, 'solution': yn}
+    sol = yn
 
-    return NR_sol
+    return sol
 
-sol = nr_solve(settings)
+def combine(settings):
+    '''
+    Combines interior and exterior solutions for Newton Raphson and returns full solution
 
-x = sol['domain']
-y = sol['solution']
+    Arguments:
 
-plt.plot(x,y)
-plt.show()
+    Outputs:
+    '''
+    n = settings['variables']['n']
+    # Define a Jacobian function
+
+    dom_in = get_domain(settings['variables']['x0'], settings['variables']['b'], n/2)
+    J_int = gr.jacobian(lambda y: Fn_int(dom_in, y, n/2))
+    lim_in = (settings['B_coeffs']['y0'], settings['B_coeffs']['yb'])
+
+    dom_out = get_domain(settings['variables']['b'], settings['variables']['xn'], n/2)
+    J_ext = gr.jacobian(lambda y: Fn_ext(dom_out, y, n/2))
+    lim_out = (settings['B_coeffs']['yb'], settings['B_coeffs']['yn'])
+
+
+    interior = nr_solve(settings, dom_in, lim_in, J_int, ext=False)
+    exterior = nr_solve(settings, dom_out, lim_out, J_ext, ext=True)
+
+    dom = np.concatenate((dom_in, dom_out))
+    sol = np.concatenate((interior, exterior))
+
+    nr_sol = {'domain': dom, 'solution':sol}
+
+    return nr_sol
+    
+'''
+sol = combine(settings)
+
+x = sol[0]
+y = sol[1]
+
+#plt.plot(x,y)
+#plt.show()
+
+print(len(x))
+'''

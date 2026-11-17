@@ -12,6 +12,12 @@ ALL EXCEPT THE ANALYTICAL SOLUTION WHICH MUST CURRENTLY BE EDITED IN THE analyti
 
 import numpy as np
 
+# Selection of solver(s) to output
+solver_selection = {
+    'FD': False, # Variable determining if finite difference displayed alongside analytical solution
+    'NR': True # Variable determining if Newton Raphson displayed alongside analytical solution
+}
+
 # Dictionary containing desired labels for plots
 graph_settings = {
     'title': 'Comparing Analytical and Numerical Solution',
@@ -54,11 +60,12 @@ B_coeffs = {
 # Dictionary containing coefficients and values necessary for the Newton Raphson solver
 NR_coeffs = {
     'N_max': 30, # Maximum number of iterations allowed
-    'tol': 1e-4 # Tolerance of NR solver
+    'tol': 1e-9 # Tolerance of NR solver
 }
 
 # Dictionary containing all previous nested for convenience
 settings = {
+    "selection": solver_selection,
     "graph_settings": graph_settings,
     "variables": variables,
     "A_coeffs": y_matrix_A_coeffs,
