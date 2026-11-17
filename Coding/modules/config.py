@@ -14,7 +14,7 @@ import numpy as np
 
 # Selection of solver(s) to output
 solver_selection = {
-    'FD': False, # Variable determining if finite difference displayed alongside analytical solution
+    'FD': True, # Variable determining if finite difference displayed alongside analytical solution
     'NR': True # Variable determining if Newton Raphson displayed alongside analytical solution
 }
 
