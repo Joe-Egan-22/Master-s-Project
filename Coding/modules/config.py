@@ -14,15 +14,17 @@ import numpy as np
 
 # Selection of solver(s) to output
 solver_selection = {
-    'FD': True, # Variable determining if finite difference displayed alongside analytical solution
-    'NR': True # Variable determining if Newton Raphson displayed alongside analytical solution
+    'FD_TW': False, # Variable determining if finite difference displayed alongside analytical solution for thin wall
+    'NR_TW': False, # Variable determining if Newton Raphson displayed alongside analytical solution for thin wall
+    'FD_Quad': False, # Variable determining if finite difference displayed alongside analytical solution for quadratic
+    'NR_Soft': True # Variable determining if Newton Raphson displayed alongside analytical solution for thin wall
 }
 
 # Dictionary containing desired labels for plots
 graph_settings = {
     'title': 'Comparing Analytical and Numerical Solution',
     'xlabel': 'x',
-    'ylabel': r'f(x)'
+    'ylabel': r'\chi (x)'
 }
 
 # Dictionary defining key variables for finite difference
@@ -37,20 +39,20 @@ variables = {
 # Dictionary containing coefficients for LHS matrix in finite difference
 y_matrix_A_coeffs = {
     'y_i-1/h2': 1,   # Term propto h^-2 in left off-diagonal element
-    'y_i-1/hx': -1,   # Term propto hx^-1 in left off-diagonal element
+    'y_i-1/hx': 0,   # Term propto hx^-1 in left off-diagonal element
 
-    'y_i_const': -2,  # Constant term in diagonal element
-    'y_i_hs': -25,      # Term propto the Heaviside function in diagonal element
+    'y_i_const': -3/2,  # Constant term in diagonal element
+    'y_i_hs': -1/2,      # Term propto the Heaviside function in diagonal element
     'y_i/h2': -2,      # Term propto h^-2 in diagonal element
 
     'y_i+1/h2': 1,    # Term propto h^-2 in right off-diagonal element
-    'y_i+1/hx': 1     # Term propto hx^-1 in right off-diagonal element
+    'y_i+1/hx': 0     # Term propto hx^-1 in right off-diagonal element
 }
 
 # Dictionary containing coefficients for RHS vector in finite difference (FOR INSIDE THE SOURCE)
 B_coeffs = {
-    'const': -0,           # For constant term
-    'hs': -25,              # For constant term propto Heaviside function
+    'const': 0,           # For constant term
+    'hs': 0,              # For constant term propto Heaviside function
     'linear': 0,            # For linear term
     'quadratic':0,          # For quadratic term
     'y0': 0,               # Fixed initial value
@@ -60,7 +62,8 @@ B_coeffs = {
 # Dictionary containing coefficients and values necessary for the Newton Raphson solver
 NR_coeffs = {
     'N_max': 30, # Maximum number of iterations allowed
-    'tol': 1e-9 # Tolerance of NR solver
+    'tol': 1e-9,  # Tolerance of NR solver
+    'width': 1 # Width parameter of soft boundary
 }
 
 # Dictionary containing all previous nested for convenience

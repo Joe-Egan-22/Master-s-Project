@@ -18,6 +18,18 @@ Output:
 
 import numpy as np
 
+def orig_val(settings):
+    '''
+    Gets the origin field value for the quadratic approximation
+    '''
+    X = settings['variables']['b']
+    g = np.sqrt(5/2 - 1)
+    chib = (np.sqrt(2)*X + 1) / (X * ( np.sqrt(2) +  g*(np.tanh(g*X))**-1)  )   # Boundary field value
+
+    chi0 = X*chib*(np.sinh(g*X))**-1
+
+    return chi0
+
 def get_h(settings):
     '''
     Extracts starting point (x0), end point (xn) and
@@ -123,6 +135,7 @@ def get_B(settings, x, h):
     '''
     # Extract required coefficients
     n = settings['variables']['n']
+    chi0 = orig_val(settings)
 
     # Define Heaviside function
     X = np.full((n+1), settings['variables']['b']) # (n+1) array filled with field boundary value
@@ -133,6 +146,7 @@ def get_B(settings, x, h):
 
     # Fix initial and final values
     B[0] = settings['B_coeffs']['y0']
+    #B[0] = chi0
     B[int(n/2)] = settings['B_coeffs']['yb'] # Fix boundary field value
     B[n] = settings['B_coeffs']['yn']
 
@@ -181,5 +195,28 @@ def solve(settings):
 
     # Form a dictionary
     num_dict = {'domain': dom, 'solution': sol}
+
+    return num_dict
+
+def quad_correct(settings):
+    '''
+    Corrects the solution in the case of the quadratic approximation
+
+    Arguments:
+        settings: Dict
+    Outputs:
+        num_dict: Dict
+
+    '''
+
+    f_sol = solve(settings)
+
+    x = f_sol['domain']
+    f = f_sol['solution']
+    s = x - np.full((settings['variables']['n']+1), settings['variables']['b'])
+
+    y = np.heaviside(s,0)*(1-f/x) + np.heaviside(-s,0)*f/x
+
+    num_dict = {'domain': x, 'solution': y}
 
     return num_dict

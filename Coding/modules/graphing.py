@@ -8,9 +8,10 @@ Functions:
 '''
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 
-def plot_sols(settings, ana_sol, num_sol):
+def plot_sols(settings, ana_sol, num_sol, title):
     '''
     Creates a figure and plots solution against domain.
 
@@ -23,12 +24,13 @@ def plot_sols(settings, ana_sol, num_sol):
     '''
     fig = plt.figure()
     ax = fig.add_subplot()
-    ax.set_title(settings['graph_settings']['title'])
+    ax.set_title(title)
     ax.set_xlabel(settings['graph_settings']['xlabel'])
     ax.set_ylabel(settings['graph_settings']['ylabel'])
 
-    # Plot numerical solution
     n = settings['variables']['n']
+
+    # Plot numerical solution
     ax.plot(num_sol['domain'], num_sol['solution'], label = f'Numerical solution (n = {n})')
     ax.plot(ana_sol['domain'], ana_sol['solution'], label = 'Analytical solution')
 

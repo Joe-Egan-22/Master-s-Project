@@ -11,18 +11,29 @@ def main():
     variable_check.check_n(settings)
 
     # Solutions
-    fd_sol = fd_solver.solve(settings) # Numerical solution and corresponding domain
-    nr_sol = nr_solver.combine(settings)
-    ana_sol = analytical.analytical_eq(settings) # Analytical solution and corresponding domain
+    fd_sol_tw = fd_solver.solve(settings) # Numerical solution and corresponding domain
+    nr_sol_tw = nr_solver.combine(settings, do_tot=False)
+    fd_sol_quad = fd_solver.quad_correct(settings)
+    nr_sol_soft = nr_solver.combine(settings, do_tot=False)
+    ana_sols = analytical.collect_sols(settings) # Analytical solution and corresponding domain
+    
 
     # Plot numerical and analytical solution
-    if settings['selection']['FD'] == True:
-        graphing.plot_sols(settings, ana_sol, fd_sol)
+    if settings['selection']['FD_TW'] == True:
+        graphing.plot_sols(settings, ana_sols['Thin_Wall'], fd_sol_tw, "Comparing Thin-Wall Approximation with Finite Difference")
 
-    if settings['selection']['NR'] == True:
-        graphing.plot_sols(settings, ana_sol, nr_sol)
+    if settings['selection']['NR_TW'] == True:
+        graphing.plot_sols(settings, ana_sols['Thin_Wall'], nr_sol_tw, "Comparing Thin-Wall Approximation with Newton Raphson")
 
+    if settings['selection']['FD_Quad'] == True:
+        graphing.plot_sols(settings, ana_sols['Quadratic'], fd_sol_quad, "Comparing Quadratic Approximation with Finite Difference")
+    
+    if settings['selection']['NR_Soft'] == True:
+        graphing.plot_sols(settings, ana_sols['Thin_Wall'], nr_sol_soft, f"Testing Soft Boundary (width {nr_sol_soft['width']}) Against Thin Wall with NR")
+
+    
     return None
+
 
 if __name__ == '__main__':
     main()

@@ -24,13 +24,14 @@ def domain(settings):
     n = settings['variables']['n']
 
     # Create domain array
-    domain = np.linspace(x0,xn,n+1)
+    domain = np.linspace(x0,xn,int(n+1))
 
     return domain
 
-def analytical_eq(settings):
+def thin_wall_eq(settings):
     '''
-    Formulates the analytical solution array
+    Formulates the analytical solution array of the
+    thin-wall approximation
 
     Arguments:
         settings: Dict
@@ -46,7 +47,7 @@ def analytical_eq(settings):
     X = settings['variables']['b'] # Arbitrary source boundary value
 
     # Redefine domain as difference between x and boundary source value
-    s = x - np.full(n+1, 5)
+    s = x - np.full(n+1, X)
 
     # User must formulate analytical equation HERE rather than in config file
 
@@ -63,5 +64,61 @@ def analytical_eq(settings):
 
     ana_eq = (interior + exterior)
 
-    ana_sol = {'domain': x, 'solution': ana_eq}
-    return ana_sol
+    return ana_eq
+
+def quadratic_eq(settings):
+    '''
+    Formulates the quadratic solution array of the
+    thin-wall approximation
+
+    Arguments:
+        settings: Dict
+
+    Outputs:
+        ana_sol: NumPy array
+    '''
+
+    # Extract n
+    n = settings['variables']['n']
+
+    # Define domain
+    x = domain(settings)
+    X = settings['variables']['b'] # Arbitrary source boundary value
+
+    # Redefine domain as difference between x and boundary source value
+    s = x - np.full(n+1, X)
+
+    # User must formulate analytical equation HERE rather than in config file
+
+    p = 2.5 # Phase parameter
+    g = np.sqrt(p-1)
+    chi0 = (np.sqrt(2)*X + 1) / (X*( np.sqrt(2) + g*(np.tanh(g*X))**(-1) )) # Field boundary value
+    pve_step = np.heaviside(s, 0.5) # Step function Theta(x) to isolate exterior
+    nve_step = np.heaviside(-s, 0.5) # Step function Theta(-x) to isolate interior
+
+    interior = nve_step * X/x * chi0 * np.sinh(g*x) / np.sinh(g*X)
+    exterior = pve_step * (1- (1-chi0) * X/x * np.exp(np.sqrt(2)*X) * np.exp(-np.sqrt(2)*x) )
+
+    ana_eq = (interior + exterior)
+
+    return ana_eq
+
+def collect_sols(settings):
+    '''
+    Collects all analytical solutions
+
+    Arguments:
+
+    Outputs:
+    '''
+
+    x = domain(settings)
+    tw_sol = {'domain': x, 'solution':thin_wall_eq(settings)}
+    quad_sol = {'domain': x,'solution': quadratic_eq(settings)}
+
+    sol_dict = {
+        "Thin_Wall": tw_sol,
+        "Quadratic": quad_sol
+    }
+
+    return sol_dict
