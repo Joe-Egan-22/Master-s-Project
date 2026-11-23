@@ -30,11 +30,12 @@ graph_settings = {
 # Dictionary defining key variables for finite difference
 variables = {
     'n': 100,    # Number of divisions
-    'x0': 1e-9,    # Starting point
-    'b': 5,     # Arbitrary source boundary location
+    'x0': 1e-9,    # Starting point,     
     'xn': 10,     # End point
     'e': 1e-9   # Arbitrarily small division
 }
+
+variables['b'] = (variables['xn'] - variables['x0'])/2 # Source boundary location
 
 # Dictionary containing coefficients for LHS matrix in finite difference
 y_matrix_A_coeffs = {
@@ -55,7 +56,7 @@ B_coeffs = {
     'hs': 0,              # For constant term propto Heaviside function
     'linear': 0,            # For linear term
     'quadratic':0,          # For quadratic term
-    'y0': 0,               # Fixed initial value
+    'y0': 0.01,               # Fixed initial value
     'yb': 1/np.sqrt(50),    # Fixed field boundary value
     'yn': 1 - np.exp(-np.sqrt(2)*variables['xn'])     # Fixed final value (use if applicable)
 }

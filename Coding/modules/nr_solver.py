@@ -12,7 +12,7 @@ import autograd as gr
 import numpy as np
 import matplotlib.pyplot as plt
 
-W = 1e4
+W = 1e-9
 
 def Fn_ext(x,y,n):
     '''

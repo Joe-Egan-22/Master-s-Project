@@ -1,4 +1,11 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.defaultPackageManager": "ms-python.python:pip"
+    "python-envs.defaultPackageManager": "ms-python.python:pip",
+    "editor.inlineSuggest.suppressSuggestions": true,
+    "editor.quickSuggestions": {
+        
+        "other": "offWhenInlineCompletions",
+        "comments": "off",
+        "strings": "off"
+    }
 }
